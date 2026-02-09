@@ -9,202 +9,215 @@ from unitree_sdk2py.core.channel import (
     ChannelFactoryInitialize,
 )
 
+# ===== TIPOS IDL (SOLO PARA DDS) =====
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import HandCmd_, HandState_
 
-# ---------------- STATES ----------------
-INIT = 0
+# ===== WRAPPERS DEFAULT (MENSAJES REALES) =====
+from unitree_sdk2py.idl.default import (
+    unitree_hg_msg_dds__HandCmd_,
+    unitree_hg_msg_dds__HandState_,
+)
+
+# =========================
+# STATES
+# =========================
+INIT   = 0
 ROTATE = 1
-GRIP = 2
-STOP = 3
-PRINT = 4
+GRIP   = 2
+STOP   = 3
+PRINT  = 4
 
 currentState = INIT
 
-# ---------------- LIMITS ----------------
-maxLimits_left  = [1.05,1.05,1.75,0,0,0,0]
-minLimits_left  = [-1.05,-0.724,0,-1.57,-1.75,-1.57,-1.75]
+# =========================
+# LIMITS
+# =========================
+maxLimits_left  = [1.05, 1.05, 1.75, 0,    0,    0,    0]
+minLimits_left  = [-1.05,-0.724,0,   -1.57,-1.75,-1.57,-1.75]
 
-maxLimits_right = [1.05,0.742,0,1.57,1.75,1.57,1.75]
-minLimits_right = [-1.05,-1.05,-1.75,0,0,0,0]
+maxLimits_right = [1.05, 0.742,0,    1.57, 1.75, 1.57, 1.75]
+minLimits_right = [-1.05,-1.05,-1.75,0,    0,    0,    0]
 
 MOTOR_MAX = 7
-SENSOR_MAX = 9
 
-# ---------------- RIS MODE ----------------
-def build_mode(motor_id,status=1,timeout=0):
+# =========================
+# RIS MODE
+# =========================
+def build_mode(motor_id, status=1, timeout=0):
     mode = 0
     mode |= (motor_id & 0x0F)
     mode |= (status & 0x07) << 4
     mode |= (timeout & 0x01) << 7
     return mode
 
-# ---------------- DDS ----------------
-hand_id = input("Input hand (L/R): ")
+# =========================
+# DDS SETUP
+# =========================
+hand_id = input("Input hand (L/R): ").strip().upper()
 
 if hand_id == "L":
     isLeft = True
-    dds_namespace = "rt/dex3/left/cmd"
-    sub_namespace = "rt/lf/dex3/left/state"
+    cmd_namespace   = "rt/dex3/left/cmd"
+    state_namespace = "rt/lf/dex3/left/state"
 else:
     isLeft = False
-    dds_namespace = "rt/dex3/right/cmd"
-    sub_namespace = "rt/lf/dex3/right/state"
+    cmd_namespace   = "rt/dex3/right/cmd"
+    state_namespace = "rt/lf/dex3/right/state"
 
-iface = input("Network interface (eth0/enp...): ")
+iface = input("Network interface (eth0/enp...): ").strip()
+ChannelFactoryInitialize(0, iface)
 
-ChannelFactoryInitialize(0,iface)
+publisher  = ChannelPublisher(cmd_namespace, HandCmd_)
+subscriber = ChannelSubscriber(state_namespace, HandState_)
 
-publisher = ChannelPublisher(dds_namespace, HandCmd_)
-subscriber = ChannelSubscriber(sub_namespace, HandState_)
+publisher.Init()
 
-msg = HandCmd_()
-state = HandState_()
+# =========================
+# HAND CMD (WRAPPER)
+# =========================
+cmd_msg = unitree_hg_msg_dds__HandCmd_()
 
-msg.motor_cmd().resize(MOTOR_MAX)
-state.motor_state().resize(MOTOR_MAX)
-state.press_sensor_state().resize(SENSOR_MAX)
+# =========================
+# HAND STATE (WRAPPER)
+# =========================
+state = unitree_hg_msg_dds__HandState_()
 
-# ---------------- CALLBACK ----------------
 def StateHandler(message):
     global state
-    state = message
+    state = message   # message YA es wrapper
 
-subscriber.InitChannel(StateHandler,1)
-publisher.InitChannel()
+subscriber.Init(StateHandler, 1)
 
-# ---------------- USER INPUT ----------------
+# =========================
+# USER INPUT
+# =========================
 def userInputThread():
     global currentState
     while True:
-        ch=input()
-        if ch=="q":
-            currentState=STOP
+        ch = input().strip()
+        if ch == "q":
+            currentState = STOP
             break
-        elif ch=="r":
-            currentState=ROTATE
-        elif ch=="g":
-            currentState=GRIP
-        elif ch=="p":
-            currentState=PRINT
-        elif ch=="s":
-            currentState=STOP
+        elif ch == "r":
+            currentState = ROTATE
+        elif ch == "g":
+            currentState = GRIP
+        elif ch == "p":
+            currentState = PRINT
+        elif ch == "s":
+            currentState = STOP
 
-threading.Thread(target=userInputThread,daemon=True).start()
+threading.Thread(target=userInputThread, daemon=True).start()
 
-# ---------------- ROTATE ----------------
-count=1
-dir=1
+# =========================
+# ROTATE
+# =========================
+count = 1
+direction = 1
 
 def rotateMotors():
+    global count, direction
 
-    global count,dir
-
-    maxLimits = maxLimits_left if isLeft else maxLimits_right
-    minLimits = minLimits_left if isLeft else minLimits_right
+    maxL = maxLimits_left if isLeft else maxLimits_right
+    minL = minLimits_left if isLeft else minLimits_right
 
     for i in range(MOTOR_MAX):
+        cmd_msg.motor_cmd[i].mode = build_mode(i, 1, 0)
+        cmd_msg.motor_cmd[i].tau  = 0.0
+        cmd_msg.motor_cmd[i].kp   = 0.5
+        cmd_msg.motor_cmd[i].kd   = 0.1
 
-        mode=build_mode(i,1,0)
+        mid = (maxL[i] + minL[i]) / 2.0
+        amp = (maxL[i] - minL[i]) / 2.0
+        cmd_msg.motor_cmd[i].q = mid + amp * math.sin(count / 20000.0 * math.pi)
 
-        msg.motor_cmd()[i].mode(mode)
-        msg.motor_cmd()[i].tau(0)
-        msg.motor_cmd()[i].kp(0.5)
-        msg.motor_cmd()[i].kd(0.1)
+    publisher.Write(cmd_msg)
 
-        mid=(maxLimits[i]+minLimits[i])/2
-        amp=(maxLimits[i]-minLimits[i])/2
-
-        q=mid+amp*math.sin(count/20000*math.pi)
-
-        msg.motor_cmd()[i].q(q)
-
-    publisher.Write(msg)
-
-    count+=dir
-    if count>=10000: dir=-1
-    if count<=-10000: dir=1
+    count += direction
+    if count >= 10000:  direction = -1
+    if count <= -10000: direction =  1
 
     time.sleep(0.002)
 
-# ---------------- GRIP ----------------
+# =========================
+# GRIP
+# =========================
 def gripHand():
-
-    maxLimits = maxLimits_left if isLeft else maxLimits_right
-    minLimits = minLimits_left if isLeft else minLimits_right
+    maxL = maxLimits_left if isLeft else maxLimits_right
+    minL = minLimits_left if isLeft else minLimits_right
 
     for i in range(MOTOR_MAX):
+        cmd_msg.motor_cmd[i].mode = build_mode(i, 1, 0)
+        cmd_msg.motor_cmd[i].tau  = 0.0
 
-        mode=build_mode(i,1,0)
+        mid = (maxL[i] + minL[i]) / 2.0
+        cmd_msg.motor_cmd[i].q  = mid
+        cmd_msg.motor_cmd[i].dq = 0.0
+        cmd_msg.motor_cmd[i].kp = 1.5
+        cmd_msg.motor_cmd[i].kd = 0.1
 
-        msg.motor_cmd()[i].mode(mode)
-        msg.motor_cmd()[i].tau(0)
+    publisher.Write(cmd_msg)
+    time.sleep(1.0)
 
-        mid=(maxLimits[i]+minLimits[i])/2
-
-        msg.motor_cmd()[i].q(mid)
-        msg.motor_cmd()[i].dq(0)
-        msg.motor_cmd()[i].kp(1.5)
-        msg.motor_cmd()[i].kd(0.1)
-
-    publisher.Write(msg)
-    time.sleep(1)
-
-# ---------------- STOP ----------------
+# =========================
+# STOP
+# =========================
 def stopMotors():
-
     for i in range(MOTOR_MAX):
+        cmd_msg.motor_cmd[i].mode = build_mode(i, 1, 1)
+        cmd_msg.motor_cmd[i].tau  = 0.0
+        cmd_msg.motor_cmd[i].dq   = 0.0
+        cmd_msg.motor_cmd[i].kp   = 0.0
+        cmd_msg.motor_cmd[i].kd   = 0.0
+        cmd_msg.motor_cmd[i].q    = 0.0
 
-        mode=build_mode(i,1,1)
+    publisher.Write(cmd_msg)
+    time.sleep(1.0)
 
-        msg.motor_cmd()[i].mode(mode)
-        msg.motor_cmd()[i].tau(0)
-        msg.motor_cmd()[i].dq(0)
-        msg.motor_cmd()[i].kp(0)
-        msg.motor_cmd()[i].kd(0)
-        msg.motor_cmd()[i].q(0)
-
-    publisher.Write(msg)
-    time.sleep(1)
-
-# ---------------- PRINT ----------------
+# =========================
+# PRINT STATE
+# =========================
 def printState():
+    if len(state.motor_state) == 0:
+        print("No motor state yet...")
+        return
 
-    maxLimits = maxLimits_left if isLeft else maxLimits_right
-    minLimits = minLimits_left if isLeft else minLimits_right
+    maxL = maxLimits_left if isLeft else maxLimits_right
+    minL = minLimits_left if isLeft else minLimits_right
 
-    q=[]
-
+    q_norm = []
     for i in range(MOTOR_MAX):
+        q = state.motor_state[i].q
+        qn = (q - minL[i]) / (maxL[i] - minL[i])
+        q_norm.append(max(0.0, min(1.0, qn)))
 
-        val=state.motor_state()[i].q()
-        val=(val-minLimits[i])/(maxLimits[i]-minLimits[i])
-        val=max(0,min(1,val))
-        q.append(val)
-
-    print("Hand:",np.round(q,3))
+    print("Hand:", np.round(q_norm, 3))
     time.sleep(0.1)
 
-# ---------------- LOOP ----------------
-lastState=None
+# =========================
+# MAIN LOOP
+# =========================
+lastState = None
+print("Commands: r=rotate, g=grip, s=stop, p=print, q=quit")
 
 while True:
 
-    if currentState!=lastState:
-        print("State:",currentState)
-        lastState=currentState
+    if currentState != lastState:
+        print("State:", currentState)
+        lastState = currentState
 
-    if currentState==INIT:
+    if currentState == INIT:
         print("Initializing...")
-        currentState=ROTATE
+        currentState = STOP
 
-    elif currentState==ROTATE:
+    elif currentState == ROTATE:
         rotateMotors()
 
-    elif currentState==GRIP:
+    elif currentState == GRIP:
         gripHand()
 
-    elif currentState==STOP:
+    elif currentState == STOP:
         stopMotors()
 
-    elif currentState==PRINT:
+    elif currentState == PRINT:
         printState()
