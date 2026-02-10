@@ -238,7 +238,7 @@ while True:
         rotateMotors()
 
     elif currentState == GRIP:
-        gripHand_force_test()
+        gripHand()
 
     elif currentState == STOP:
         stopMotors()
