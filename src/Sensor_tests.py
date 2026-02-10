@@ -1,102 +1,80 @@
-import time
 import numpy as np
-
 from unitree_sdk2py.core.channel import (
     ChannelSubscriber,
     ChannelFactoryInitialize,
 )
 
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import HandState_
+from unitree_sdk2py.idl.default import unitree_hg_msg_dds__HandState_
 
 # =========================
 # CONFIG
 # =========================
-SENSOR_MAX = 9        # ajusta si luego ves otro número
 INVALID_VALUE = 30000
 SCALE = 10000.0
 
 # =========================
 # DDS SETUP
 # =========================
-hand_id = input("Input hand (L/R): ")
+hand_id = input("Input hand (L/R): ").strip().upper()
+iface = input("Network interface: ").strip()
 
-if hand_id.upper() == "L":
-    sub_namespace = "rt/lf/dex3/left/state"
-else:
-    sub_namespace = "rt/lf/dex3/right/state"
-
-iface = input("Network interface (eth0/enp...): ")
+topic = (
+    "rt/lf/dex3/left/state"
+    if hand_id == "L"
+    else "rt/lf/dex3/right/state"
+)
 
 ChannelFactoryInitialize(0, iface)
 
-subscriber = ChannelSubscriber(sub_namespace, HandState_)
+subscriber = ChannelSubscriber(topic, HandState_)
+state = unitree_hg_msg_dds__HandState_()
 
-state = HandState_()
-
-# =========================
-# CALLBACK
-# =========================
-def StateHandler(message):
+def cb(msg):
     global state
-    state = message
+    state = msg
 
-subscriber.InitChannel(StateHandler, 1)
+subscriber.Init(cb, 1)
 
-print("\nEsperando datos de sensores...\n")
+print("\nEsperando datos de sensores...")
+print("p = leer sensores | q = salir")
 
 # =========================
-# FUNCION DE LECTURA
+# LECTURA
 # =========================
 def read_pressure():
 
-    try:
-        sensor_count = len(state.press_sensor_state())
-    except:
-        print("No hay datos aún...")
+    if len(state.press_sensor_state) == 0:
+        print("No hay datos aún.")
         return
 
     print("\n==============================")
 
-    for finger in range(sensor_count):
+    for finger_idx, sensor in enumerate(state.press_sensor_state):
 
-        sensor = state.press_sensor_state()[finger]
+        raw = list(sensor.pressure)     # ← CLAVE
+        temp = sensor.temperature
+        lost = sensor.lost
 
-        try:
-            raw = sensor.data()
-            temp = sensor.temp()
-            sid  = sensor.id()
-        except:
-            print(f"Finger {finger}: estructura inesperada")
-            continue
+        scaled = [
+            0.0 if v == INVALID_VALUE else v / SCALE
+            for v in raw
+        ]
 
-        scaled = []
-
-        for v in raw:
-
-            if v == INVALID_VALUE:
-                scaled.append(0)
-            else:
-                scaled.append(v / SCALE)
-
-        print(f"\nFinger ID: {sid}")
-        print("Temp:", temp)
+        print(f"\nFinger index: {finger_idx}")
+        print("Lost packet:", lost)
+        print("Temperature:", temp)
         print("Raw:", raw)
-        print("Scaled:", np.round(scaled,2))
-        print("Max pressure:", np.round(max(scaled),2))
+        print("Scaled:", np.round(scaled, 2))
+        print("Max pressure:", round(max(scaled), 2))
 
 # =========================
 # LOOP
 # =========================
-print("Comandos:")
-print("  p  -> leer sensores")
-print("  q  -> salir")
-
 while True:
-
-    cmd = input()
-
+    cmd = input().strip().lower()
     if cmd == "p":
         read_pressure()
-
     elif cmd == "q":
+        print("Saliendo...")
         break
