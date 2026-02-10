@@ -142,6 +142,8 @@ def rotateMotors():
 # =========================
 # GRIP
 # =========================
+
+
 def gripHand():
     maxL = maxLimits_left if isLeft else maxLimits_right
     minL = minLimits_left if isLeft else minLimits_right
@@ -158,6 +160,28 @@ def gripHand():
 
     publisher.Write(cmd_msg)
     time.sleep(1.0)
+
+    array_move_factor = [0,0.1,0.2,0.3,0.4,0.3,0.2,0.1,0]
+    for item in array_move_factor:
+        print(f"-- Actual state {item}")
+        for i in range(MOTOR_MAX):
+            cmd_msg.motor_cmd[i].mode = build_mode(i, 1, 0)
+            cmd_msg.motor_cmd[i].tau  = 0.0
+            if i == 0:
+                mid = (maxL[i] + minL[i]) / 2.0
+            else:
+                if i >= 1 and i <= 2:
+                    mid = (maxL[i] + minL[i]) / 2.0 - item * maxL[i]
+                else:
+                    mid = (maxL[i] + minL[i]) / 2.0 + item * maxL[i]
+            print(f"--Position value {mid}")
+            cmd_msg.motor_cmd[i].q  = mid
+            cmd_msg.motor_cmd[i].dq = 0.0
+            cmd_msg.motor_cmd[i].kp = 1.5
+            cmd_msg.motor_cmd[i].kd = 0.1
+
+        publisher.Write(cmd_msg)
+        time.sleep(5.0)
 
 # =========================
 # STOP
@@ -214,7 +238,7 @@ while True:
         rotateMotors()
 
     elif currentState == GRIP:
-        gripHand()
+        gripHand_force_test()
 
     elif currentState == STOP:
         stopMotors()
