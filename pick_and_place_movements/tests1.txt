@@ -1,0 +1,23 @@
+{
+  "nombre_rutina": "tests1",
+  "fecha_creacion": "2026-04-09 11:21:05",
+  "numero_pasos": 1,
+  "pasos": [
+    {
+      "nombre": "Paso 1",
+      "posiciones": {
+        "mano_der_0": 0.0,
+        "mano_der_1": 0.0,
+        "mano_der_2": 0.0,
+        "mano_der_3": 0.0,
+        "mano_der_4": 0.0,
+        "mano_der_5": 0.0,
+        "mano_der_6": 0.0,
+        "12": 0.0,
+        "13": 0.0,
+        "14": 0.0
+      },
+      "duracion": 2.0
+    }
+  ]
+}

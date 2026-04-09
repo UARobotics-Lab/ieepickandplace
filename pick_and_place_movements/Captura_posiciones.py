@@ -100,6 +100,7 @@ class Dex3_1_Reader:
     def left_hand_state_callback(self, msg: HandState_):
         self.left_hand_state = msg
         self.left_ready = True
+        print("DEBUG LEFT:", msg.motor_state[0].__dict__)
         if self.right_ready:
             self.first_update = True
 
@@ -112,7 +113,7 @@ class Dex3_1_Reader:
     #Loop de actualización de los estados de las manos
     def update_loop(self):
         import time
-        while not (self.left_ready and self.right_ready):
+        while not (self.left_ready or self.right_ready):
             time.sleep(0.01)
             print("[Dex3_1_Reader] Lectura de estado de las manos incializada...")
         while True:
@@ -121,11 +122,11 @@ class Dex3_1_Reader:
     #Obtener posiciones de las manos
     # Esta función devuelve un diccionario con las posiciones de las manos
     def get_hand_positions(self):
-        if not (self.left_ready and self.right_ready):
+        if not (self.left_ready or self.right_ready):
             return None
-        
-        left_q = [m.q for m in self.left_hand_state.motor_state]
-        right_q = [m.q for m in self.right_hand_state.motor_state]
+
+        left_q = [m.q for m in self.left_hand_state.motor_state] if self.left_ready else [0.0]*7
+        right_q = [m.q for m in self.right_hand_state.motor_state] if self.right_ready else [0.0]*7
 
         return {
             "left": left_q,
@@ -304,18 +305,26 @@ def grabar_modo_4(reader, pasos, contador, manos):
     
 
     
-    input(f"Captura brazo derecho para paso {contador}. Enter para continuar...")
+    input(f"Captura manos {contador}. Enter para continuar...")
     
-    pos_der = {f"mano_der_{i}": val for i, val in enumerate(estado_manos["right"])}
+    pos_manos = {}
+
+    # MANO IZQUIERDA
+    for i, val in enumerate(estado_manos["left"]):
+        pos_manos[f"mano_izq_{i}"] = val
+
+    # MANO DERECHA
+    for i, val in enumerate(estado_manos["right"]):
+        pos_manos[f"mano_der_{i}"] = val
+
     paso = {
         "nombre": f"Paso {contador}",
-        "posiciones": pos_der,
+        "posiciones": pos_manos,
         "duracion": 0
     }
     
-
-    pasos[-1]["posiciones"].update(pos_der)
-    vista_previa_parcial("Mano derecha", pos_der, contador - 1)
+    pasos.append(paso)
+    vista_previa_parcial("Manos", pos_manos, contador - 1)
 
     grabar_cintura = input("¿Capturar cintura para este paso? [s/n]: ").strip().lower()
     if grabar_cintura == 's':
@@ -478,12 +487,15 @@ def main():
 
     manos = Dex3_1_Reader()
     manos.init()
+    threading.Thread(target=manos.update_loop, daemon=True).start()
+
 
 
     print("Esperando conexión con el robot...")
     while not reader.first_update:
         time.sleep(0.1)
     print("Conexión establecida.")
+
 
     pasos = []
     contador = 1
