@@ -1,7 +1,7 @@
 # =====================================
 # RUTA
 # =====================================
-ruta = "NOMBRE_ARCHIVO.txt"
+ruta = "tests1.txt"
 
 import sys
 import time
@@ -88,7 +88,7 @@ class HandSequence:
         for i in range(self.num_motors):
             msg.motor_cmd[i].q = posiciones.get(i, 0.0)
 
-        msg.crc = CRC().Crc(msg)
+        
         pub.Write(msg)
 
     # RELEASE MANOS
@@ -107,10 +107,8 @@ class HandSequence:
             self.msg_right.motor_cmd[i].tau = 0.0
 
         # enviar
-        self.msg_left.crc = CRC().Crc(self.msg_left)
+        
         self.publisher_left.Write(self.msg_left)
-
-        self.msg_right.crc = CRC().Crc(self.msg_right)
         self.publisher_right.Write(self.msg_right)
 
 

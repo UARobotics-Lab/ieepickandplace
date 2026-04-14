@@ -100,7 +100,6 @@ class Dex3_1_Reader:
     def left_hand_state_callback(self, msg: HandState_):
         self.left_hand_state = msg
         self.left_ready = True
-        print("DEBUG LEFT:", msg.motor_state[0].__dict__)
         if self.right_ready:
             self.first_update = True
 
@@ -512,7 +511,7 @@ def main():
         print("  e: Eliminar un paso.")
         print("  f: Finalizar y guardar.")
 
-        modo = input("Seleccione un modo de grabación (1, 2, 3, r, e, m, f): ").strip().lower()
+        modo = input("Seleccione un modo de grabación (1, 2, 3, 4, r, d, m, e, f): ").strip().lower()
 
         if modo == '1':
             contador = grabar_modo_1(reader, pasos, contador)
