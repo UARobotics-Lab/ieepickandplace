@@ -18,7 +18,7 @@ KD = 0.05
 HOLD_KP = 0.6
 
 STEP_DELAY = 0.05
-PRESSURE_THRESHOLD = 9.0  # escala (0–10)
+PRESSURE_THRESHOLD = 10.0  # escala (0–10)
 
 maxLimits = [1.05, 1.05, 1.75, 0.0, 0.0, 0.0, 0.0]
 minLimits = [-1.05, -0.724, 0.0, -1.57, -1.75, -1.57, -1.75]
@@ -179,38 +179,149 @@ class DexHand:
 
             time.sleep(STEP_DELAY)
 
+
     # =========================
-    # AGARRE PARALELO
+    # AGARRE PARALELO (FLUIDO DESDE APERTURA)
     # =========================
     def grasp_parallel(self):
 
-        print("Grasp paralelo PRO (solo bases)...")
-
-        BASE_JOINTS = [0, 3, 5]
-        FIXED_JOINTS = [1, 2, 4, 6]
+        print("Grasp paralelo (inicio natural)...")
 
         # =========================
-        # 1. FIJAR DEDOS RECTOS
+        # JOINTS
         # =========================
-        for i in FIXED_JOINTS:
-            self.q[i] = 0.0   # dedos estirados
+        THUMB_BASE = 0
+        THUMB_1 = 1
+        THUMB_2 = 2
+
+        MIDDLE_BASE = 3
+        MIDDLE_TIP  = 4
+
+        INDEX_BASE  = 5
+        INDEX_TIP   = 6
+
+        # =========================
+        # 1. NO TOCAR EL PULGAR (CLAVE)
+        # =========================
+        self.q[THUMB_BASE] = 0.0   # mantener centrado
+        # NO resetear THUMB_1
+        # NO resetear THUMB_2
+
+        # =========================
+        # 2. SOLO ESTIRAR OTROS DEDOS
+        # =========================
+        self.q[MIDDLE_TIP] = 0.0
+        self.q[INDEX_TIP]  = 0.0
 
         self.send()
-        time.sleep(1)
+        time.sleep(0.5)
 
         # =========================
-        # 2. DEFINIR TARGET SOLO BASE
+        # 3. TARGETS
         # =========================
         targets = {}
 
-        for i in BASE_JOINTS:
-
+        # índice y medio (bases)
+        for i in [MIDDLE_BASE, INDEX_BASE]:
             if CLOSE_DIR[i] == 1:
                 targets[i] = maxLimits[i]
             else:
                 targets[i] = minLimits[i]
 
-        print("Cerrando SOLO bases...")
+        # solo thumb_1 se mueve DESDE donde esté
+        if CLOSE_DIR[THUMB_1] == 1:
+            targets[THUMB_1] = maxLimits[THUMB_1]
+        else:
+            targets[THUMB_1] = minLimits[THUMB_1]
+
+        print("Cierre progresivo desde apertura real...")
+
+        # =========================
+        # 4. LOOP
+        # =========================
+        while True:
+
+            pressure = self.get_pressure()
+            print(f"[Parallel Natural] Pressure: {pressure:.3f}")
+
+            if pressure > PRESSURE_THRESHOLD:
+                print("Contacto detectado ✔")
+
+                for i in range(MOTOR_MAX):
+                    self.msg.motor_cmd[i].kp = HOLD_KP
+
+                break
+
+            # índice y medio
+            for i in [MIDDLE_BASE, INDEX_BASE]:
+                self.q[i] += (targets[i] - self.q[i]) * 0.02
+
+            # pulgar fluido (desde apertura real)
+            self.q[THUMB_1] += (targets[THUMB_1] - self.q[THUMB_1]) * 0.02
+
+            # thumb_2 se queda quieto (no tocar)
+
+            self.send()
+            self.log(pressure)
+
+            time.sleep(STEP_DELAY)
+    
+    # =========================
+    # AGARRE DE PRECISIÓN (OBJETOS PEQUEÑOS)
+    # =========================
+    def grasp_precision(self):
+
+        print("Grasp precisión (thumb + index)...")
+
+        # =========================
+        # JOINTS
+        # =========================
+        THUMB_BASE = 0
+        THUMB_1 = 1
+        THUMB_2 = 2
+
+        MIDDLE_BASE = 3
+        MIDDLE_TIP  = 4
+
+        INDEX_BASE  = 5
+        INDEX_TIP   = 6
+
+        # =========================
+        # 1. CONFIG INICIAL
+        # =========================
+        self.q[THUMB_BASE] = -0.4   # sin rotación
+
+        # pulgar recto inicial
+        self.q[THUMB_2] = 0.0
+
+        # índice recto
+        self.q[INDEX_TIP] = 0.0
+
+        # medio fuera del agarre
+        self.q[MIDDLE_BASE] = 0.0
+        self.q[MIDDLE_TIP]  = 0.0
+
+        self.send()
+        time.sleep(0.5)
+
+        # =========================
+        # 2. TARGETS
+        # =========================
+        targets = {}
+
+        # índice base
+        if CLOSE_DIR[INDEX_BASE] == 1:
+            targets[INDEX_BASE] = maxLimits[INDEX_BASE]
+        else:
+            targets[INDEX_BASE] = minLimits[INDEX_BASE]
+
+        # pulgar (solo thumb_1)
+        if CLOSE_DIR[THUMB_1] == 1:
+            targets[THUMB_1] = maxLimits[THUMB_1]
+        else:
+            targets[THUMB_1] = minLimits[THUMB_1]
+
+        print("Cerrando pinza de precisión...")
 
         # =========================
         # 3. LOOP
@@ -218,19 +329,21 @@ class DexHand:
         while True:
 
             pressure = self.get_pressure()
-            print(f"[Parallel PRO] Pressure: {pressure:.3f}")
+            print(f"[Precision] Pressure: {pressure:.3f}")
 
             if pressure > PRESSURE_THRESHOLD:
-                print("Contacto plano detectado ✔")
+                print("Objeto pequeño asegurado ✔")
 
                 for i in range(MOTOR_MAX):
                     self.msg.motor_cmd[i].kp = HOLD_KP
 
                 break
 
-            # 🔥 SOLO bases se mueven
-            for i in BASE_JOINTS:
-                self.q[i] += (targets[i] - self.q[i]) * 0.02
+            # índice
+            self.q[INDEX_BASE] += (targets[INDEX_BASE] - self.q[INDEX_BASE]) * 0.03
+
+            # pulgar
+            self.q[THUMB_1] += (targets[THUMB_1] - self.q[THUMB_1]) * 0.03
 
             self.send()
             self.log(pressure)
@@ -276,6 +389,7 @@ def main():
     print("\nSelecciona modo:")
     print("1 → Cilindro")
     print("2 → Paralelo")
+    print("3 → Precision")
 
     mode = input("Modo: ")
 
@@ -286,6 +400,8 @@ def main():
         hand.grasp_cylinder()
     elif mode == "2":
         hand.grasp_parallel()
+    elif mode == "3":
+        hand.grasp_precision()
     else:
         print("Modo inválido")
         return
