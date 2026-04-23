@@ -289,7 +289,7 @@ class DexHand:
         # =========================
         # 1. CONFIG INICIAL
         # =========================
-        self.q[THUMB_BASE] = -0.4   # sin rotación
+        self.q[THUMB_BASE] = -0.4   # rotación
 
         # pulgar recto inicial
         self.q[THUMB_2] = 0.0
