@@ -18,7 +18,7 @@ KD = 0.05
 HOLD_KP = 0.6
 
 STEP_DELAY = 0.05
-PRESSURE_THRESHOLD = 10.0  # escala (0–10)
+PRESSURE_THRESHOLD = 12.0  # escala (0–10)
 
 maxLimits = [1.05, 1.05, 1.75, 0.0, 0.0, 0.0, 0.0]
 minLimits = [-1.05, -0.724, 0.0, -1.57, -1.75, -1.57, -1.75]
