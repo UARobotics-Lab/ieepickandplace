@@ -38,9 +38,10 @@ class HandSequence:
         self.q = [0.0]*7
         self.mode = "normal"
 
+        self.HOLD_KP = 0.6
         self.KP = 0.3
         self.KD = 0.05
-        self.PRESSURE_THRESHOLD = 9.0
+        self.PRESSURE_THRESHOLD = 11.0
 
         self.maxLimits = [1.05, 1.05, 1.75, 0.0, 0.0, 0.0, 0.0]
         self.minLimits = [-1.05, -0.724, 0.0, -1.57, -1.75, -1.57, -1.75]
@@ -115,6 +116,139 @@ class HandSequence:
 
             self.send()
             time.sleep(0.04)
+    
+    def grasp_parallel(self):
+
+        print("[HAND] Grasp paralelo FUERTE")
+        self.mode = "grasp"
+
+        THUMB_BASE = 0
+        THUMB_1 = 1
+        MIDDLE_BASE = 3
+        INDEX_BASE = 5
+
+        self.q[THUMB_BASE] = 0.0
+        self.send()
+        time.sleep(0.3)
+
+        targets = {}
+
+        for i in [MIDDLE_BASE, INDEX_BASE]:
+            targets[i] = self.maxLimits[i] if self.CLOSE_DIR[i] == 1 else self.minLimits[i]
+
+        targets[THUMB_1] = self.maxLimits[THUMB_1] if self.CLOSE_DIR[THUMB_1] == 1 else self.minLimits[THUMB_1]
+
+        contact = False
+
+        while True:
+
+            pressure = self.get_pressure()
+            print(f"[Parallel] Pressure: {pressure:.2f}")
+
+            # =========================
+            # DETECCIÓN DE CONTACTO
+            # =========================
+            if pressure > 8.0 and not contact:
+                print("Contacto detectado → apretando...")
+                contact = True
+
+            # =========================
+            # FASE 1: CIERRE
+            # =========================
+            if not contact:
+
+                for i in [MIDDLE_BASE, INDEX_BASE]:
+                    self.q[i] += (targets[i] - self.q[i]) * 0.05
+
+                self.q[THUMB_1] += (targets[THUMB_1] - self.q[THUMB_1]) * 0.05
+
+            # =========================
+            # FASE 2: APRIETE REAL
+            # =========================
+            else:
+
+                for i in [MIDDLE_BASE, INDEX_BASE, THUMB_1]:
+                    self.q[i] += 0.01 * self.CLOSE_DIR[i]   # empuja más
+
+            self.send()
+            time.sleep(0.03)
+
+            # =========================
+            # STOP
+            # =========================
+            if contact and pressure > 11.0:
+                print("Agarre firme ✔")
+
+                for i in range(7):
+                    self.msg.motor_cmd[i].kp = self.HOLD_KP
+
+                break
+    
+    def grasp_precision(self):
+
+        print("[HAND] Grasp precisión FUERTE")
+        self.mode = "grasp"
+
+        THUMB_BASE = 0
+        THUMB_1 = 1
+        INDEX_BASE = 5
+
+        # =========================
+        # CONFIG INICIAL
+        # =========================
+        self.q[THUMB_BASE] = -0.4  # rotación correcta
+        self.send()
+        time.sleep(0.3)
+
+        targets = {}
+
+        targets[INDEX_BASE] = self.maxLimits[INDEX_BASE] if self.CLOSE_DIR[INDEX_BASE] == 1 else self.minLimits[INDEX_BASE]
+        targets[THUMB_1]   = self.maxLimits[THUMB_1]   if self.CLOSE_DIR[THUMB_1] == 1 else self.minLimits[THUMB_1]
+
+        contact = False
+
+        while True:
+
+            pressure = self.get_pressure()
+            print(f"[Precision] Pressure: {pressure:.2f}")
+
+            # =========================
+            # DETECCIÓN
+            # =========================
+            if pressure > 7.5 and not contact:
+                print("Contacto pinza → apretando...")
+                contact = True
+
+            # =========================
+            # FASE 1: CIERRE
+            # =========================
+            if not contact:
+
+                self.q[INDEX_BASE] += (targets[INDEX_BASE] - self.q[INDEX_BASE]) * 0.05
+                self.q[THUMB_1]   += (targets[THUMB_1]   - self.q[THUMB_1])   * 0.05
+
+            # =========================
+            # FASE 2: APRIETE REAL
+            # =========================
+            else:
+
+                self.q[INDEX_BASE] += 0.008 * self.CLOSE_DIR[INDEX_BASE]
+                self.q[THUMB_1]   += 0.008 * self.CLOSE_DIR[THUMB_1]
+
+            self.send()
+            time.sleep(0.03)
+
+            # =========================
+            # STOP
+            # =========================
+            if contact and pressure > 8.4:
+                print("Pinza firme ✔")
+
+                for i in range(7):
+                    self.msg.motor_cmd[i].kp = self.HOLD_KP
+
+                break
+
 
     def release(self):
         self.mode = "normal"
@@ -130,8 +264,8 @@ class ArmSequence:
 
         self.start_time = 0
         self.control_dt = 0.02
-        self.kp = 20.0
-        self.kd = 2.5
+        self.kp = 22.0
+        self.kd = 3.5
 
         self.crc = CRC()
 
@@ -190,9 +324,16 @@ class ArmSequence:
 
             q = self.interpolate(q0, q1)
 
+            if j in [18, 25]:   #codo izquierdo y derecho
+                kp = 32.0
+                kd = 4.0
+            else:
+                kp = 20.0
+                kd = 3.5
+
             self.low_cmd.motor_cmd[j].q = q
-            self.low_cmd.motor_cmd[j].kp = self.kp
-            self.low_cmd.motor_cmd[j].kd = self.kd
+            self.low_cmd.motor_cmd[j].kp = kp
+            self.low_cmd.motor_cmd[j].kd = kd
 
             # guardar estado continuo REAL
             self.current_q[j] = q
@@ -246,17 +387,34 @@ def main():
     for paso in pasos:
 
         pos = paso.get("posiciones", {})
-        dur = max(paso.get("duracion", 2.0), 2.0)
+        dur = paso.get("duracion", 1.2)  # ya sin forzar 2.0
 
+        # =========================
+        # ACCIONES (GRASP / RELEASE)
+        # =========================
         if "accion" in pos:
 
             if pos["accion"] == "grasp":
-                hand.grasp_cylinder()
+
+                modo = pos.get("modo", "cylinder")
+                print(f"[GRASP] modo: {modo}")
+
+                if modo == "cylinder":
+                    hand.grasp_cylinder()
+
+                elif modo == "parallel":
+                    hand.grasp_parallel()
+
+                elif modo == "precision":
+                    hand.grasp_precision()
+
+                else:
+                    print(f"[WARN] modo desconocido: {modo}")
 
             elif pos["accion"] == "release":
                 hand.release()
 
-            continue
+            continue 
 
         # ========= BRAZO =========
         pos_arm = {int(k): v for k,v in pos.items() if k.isdigit()}
