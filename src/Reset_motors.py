@@ -25,30 +25,49 @@ def main():
     # Inicializar comunicación
     ChannelFactoryInitialize(0, sys.argv[1])
 
-    pub = ChannelPublisher("rt/dex3/left/cmd", HandCmd_)
-    pub.Init()
+    # 🔥 LEFT
+    pub_left = ChannelPublisher("rt/dex3/left/cmd", HandCmd_)
+    pub_left.Init()
 
-    msg = unitree_hg_msg_dds__HandCmd_()
+    # 🔥 RIGHT
+    pub_right = ChannelPublisher("rt/dex3/right/cmd", HandCmd_)
+    pub_right.Init()
 
-    print("Deshabilitando motores...")
+    msg_left = unitree_hg_msg_dds__HandCmd_()
+    msg_right = unitree_hg_msg_dds__HandCmd_()
+
+    print("Deshabilitando motores (izq + der)...")
 
     # =========================
-    # DESHABILITAR
+    # CONFIGURAR MENSAJE OFF
     # =========================
     for i in range(MOTOR_MAX):
-        msg.motor_cmd[i].mode = build_mode(i, 0, 0)  # 🔥 status=0 → OFF
-        msg.motor_cmd[i].kp = 0.0
-        msg.motor_cmd[i].kd = 0.0
-        msg.motor_cmd[i].q = 0.0
-        msg.motor_cmd[i].dq = 0.0
-        msg.motor_cmd[i].tau = 0.0
 
-    # Enviar varias veces para asegurar
+        # LEFT
+        msg_left.motor_cmd[i].mode = build_mode(i, 0, 0)
+        msg_left.motor_cmd[i].kp = 0.0
+        msg_left.motor_cmd[i].kd = 0.0
+        msg_left.motor_cmd[i].q = 0.0
+        msg_left.motor_cmd[i].dq = 0.0
+        msg_left.motor_cmd[i].tau = 0.0
+
+        # RIGHT
+        msg_right.motor_cmd[i].mode = build_mode(i, 0, 0)
+        msg_right.motor_cmd[i].kp = 0.0
+        msg_right.motor_cmd[i].kd = 0.0
+        msg_right.motor_cmd[i].q = 0.0
+        msg_right.motor_cmd[i].dq = 0.0
+        msg_right.motor_cmd[i].tau = 0.0
+
+    # =========================
+    # ENVIAR
+    # =========================
     for _ in range(5):
-        pub.Write(msg)
+        pub_left.Write(msg_left)
+        pub_right.Write(msg_right)
         time.sleep(0.05)
 
-    print("Motores deshabilitados ✔")
+    print("Motores deshabilitados (izq + der) ✔")
 
 
 if __name__ == "__main__":
