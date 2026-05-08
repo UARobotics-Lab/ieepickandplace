@@ -140,7 +140,7 @@
       "nombre": "Paso 6",
       "posiciones": {
         "accion": "grasp",
-        "modo": "precision"
+        "modo": "cylinder"
       },
       "duracion": 0.0
     },

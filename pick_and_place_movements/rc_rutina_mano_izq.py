@@ -1,7 +1,7 @@
 # =====================================
 # RUTA
 # =====================================
-ruta = "tests1.txt"
+ruta = "test_agarre_izq.txt"
 
 import sys
 import time
