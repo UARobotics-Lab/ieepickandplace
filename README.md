@@ -1,3 +1,12 @@
+| Información | Detalle |
+|-------------|---------|
+| Proyecto | Evaluación funcional y determinación de límites operativos de una mano robótica para aplicaciones de inventarios en el sector eléctrico y electrónico |
+| Plataforma | Unitree G1 EDU (Aura) |
+| Mano robótica | Dex3-1 |
+| Lenguaje | Python |
+| Universidad | Universidad de los Andes |
+| Autora | Laura Andrea Hurtado |
+
 # Control de la Mano Robótica Dex3-1 para Manipulación e Inventario
 
 Este repositorio contiene el software desarrollado durante el trabajo de grado **"Evaluación funcional y determinación de límites operativos de una mano robótica para aplicaciones de inventarios en el sector eléctrico y electrónico"**, realizado en la Universidad de los Andes.
