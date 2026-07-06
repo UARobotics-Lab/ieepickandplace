@@ -111,7 +111,6 @@ Estas rutinas sirvieron como base para el desarrollo de los experimentos posteri
 
 ### `pick_and_place_movements/`
 
-### `pick_and_place_movements/`
 
 Esta carpeta contiene las herramientas desarrolladas para implementar tareas de manipulación mediante captura y reproducción de movimientos.
 
