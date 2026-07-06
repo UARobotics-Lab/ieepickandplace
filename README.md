@@ -5,7 +5,7 @@
 | Mano robótica | Dex3-1 |
 | Lenguaje | Python |
 | Universidad | Universidad de los Andes |
-| Autora | Laura Andrea Hurtado |
+| Autora | Laura Andrea Hurtado Acosta |
 
 # Control de la Mano Robótica Dex3-1 para Manipulación e Inventario
 
