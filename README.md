@@ -42,6 +42,14 @@ Antes de enviar comandos desde este repositorio verifique que:
 
 > **Importante:** Si durante la inicialización o la ejecución de algún programa se observa un comportamiento inesperado, detenga la ejecución y apague el robot antes de realizar cualquier inspección del hardware.
 
+## 4. Supervisión durante la puesta en marcha
+
+Si es la primera vez que se utiliza este sistema, o si se van a realizar modificaciones en el hardware o en la configuración del robot, se recomienda realizar la puesta en marcha bajo la supervisión del líder o responsable del laboratorio.
+
+Durante el desarrollo de este proyecto, el apoyo técnico y la supervisión del sistema fueron realizados por **Álvaro Uriel Achury Florian**, líder del laboratorio, quien cuenta con la experiencia necesaria para la operación segura del robot y sus componentes.
+
+En caso de dudas sobre el estado del sistema, el procedimiento de inicialización o el funcionamiento del hardware, se recomienda solicitar el acompañamiento del responsable del laboratorio antes de continuar con la ejecución de las pruebas.
+
 ---
 
 # Contenido del repositorio
