@@ -142,3 +142,19 @@ A partir de estas capturas se desarrollaron las rutinas experimentales utilizada
         │
         ▼
 8. Ejecutar validación
+
+### `data_tests/`
+
+Esta carpeta contiene los conjuntos de datos (*datasets*) generados durante el desarrollo y la validación experimental del proyecto.
+
+Los archivos almacenados corresponden principalmente a datos en formato **CSV**, obtenidos a partir de la lectura de los sensores de la mano robótica y del registro de diferentes variables durante la ejecución de las pruebas experimentales.
+
+Estos datos fueron utilizados para:
+
+- Evaluar el comportamiento de los sensores táctiles durante las tareas de manipulación.
+- Analizar la respuesta de la mano robótica bajo diferentes configuraciones de agarre.
+- Caracterizar el desempeño del sistema frente a objetos con distintas geometrías, masas y condiciones de contacto.
+- Calcular las métricas experimentales empleadas en el trabajo de grado.
+- Generar las figuras, tablas y resultados presentados en el informe de investigación.
+
+La carpeta constituye el respaldo de los datos experimentales obtenidos durante el proyecto y permite reproducir los análisis realizados a partir de las mediciones registradas.
