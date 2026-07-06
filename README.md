@@ -59,3 +59,31 @@ El repositorio se encuentra organizado en dos módulos principales:
 - **`src/`**: contiene las rutinas básicas para el control de la mano robótica, incluyendo movimientos individuales de los dedos, posiciones básicas y funciones auxiliares utilizadas durante el desarrollo del proyecto. Asi como la lectura inicial de los sensores que posee cada mano.
 
 - **`pick_and_place_movements/`**: contiene las rutinas de mayor nivel implementadas para la manipulación de objetos, incluyendo configuraciones de agarre, secuencias de recogida (*pick*), transporte y liberación (*place*), utilizadas durante la evaluación experimental del sistema.
+
+## Requisitos
+
+### Hardware
+
+- Robot Unitree G1 EDU
+- Mano robótica Dex3-1
+- Computador con Ubuntu
+- Conexión Ethernet entre el computador y el robot
+
+### Software
+
+- Python 3
+- Unitree SDK2 para Python
+- Dependencias del SDK
+
+## Conexión con el robot
+
+Todos los programas de este repositorio establecen comunicación directa con la mano robótica mediante el Unitree SDK2 utilizando DDS.
+
+Al ejecutar cualquier script se solicitará el nombre de la interfaz de red conectada al robot, por ejemplo:
+
+```text
+Network interface (eth0/enp...):
+```
+
+Debe ingresarse la interfaz Ethernet correspondiente a la conexión física entre el computador y el robot.
+
