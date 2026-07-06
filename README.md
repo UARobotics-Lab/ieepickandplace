@@ -39,6 +39,6 @@ Antes de enviar comandos desde este repositorio verifique que:
 
 El repositorio se encuentra organizado en dos módulos principales:
 
-- **`src/`**: contiene las rutinas básicas para el control de la mano robótica, incluyendo movimientos individuales de los dedos, posiciones básicas y funciones auxiliares utilizadas durante el desarrollo del proyecto.
+- **`src/`**: contiene las rutinas básicas para el control de la mano robótica, incluyendo movimientos individuales de los dedos, posiciones básicas y funciones auxiliares utilizadas durante el desarrollo del proyecto. Asi como la lectura inicial de los sensores que posee cada mano.
 
 - **`pick_and_place_movements/`**: contiene las rutinas de mayor nivel implementadas para la manipulación de objetos, incluyendo configuraciones de agarre, secuencias de recogida (*pick*), transporte y liberación (*place*), utilizadas durante la evaluación experimental del sistema.
