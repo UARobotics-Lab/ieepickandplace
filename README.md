@@ -2,7 +2,7 @@
 
 Este repositorio contiene el software desarrollado durante el trabajo de grado **"Evaluación funcional y determinación de límites operativos de una mano robótica para aplicaciones de inventarios en el sector eléctrico y electrónico"**, realizado en la Universidad de los Andes.
 
-El proyecto implementa rutinas de control para la mano robótica **Dex3-1** integrada al robot humanoide **Unitree G1 EDU (Aura)**, utilizando **ROS 2** y **Python**. El repositorio incluye desde movimientos básicos de los dedos hasta rutinas completas de agarre (*grasping*), manipulación y **pick-and-place**, desarrolladas para evaluar experimentalmente las capacidades funcionales de la mano robótica durante tareas de inventario y manipulación de objetos.
+El proyecto implementa rutinas de control para la mano robótica **Dex3-1** integrada al robot humanoide **Unitree G1 EDU (Aura)**, utilizando **Python**. El repositorio incluye desde movimientos básicos de los dedos hasta rutinas completas de agarre (*grasping*), manipulación y **pick-and-place**, desarrolladas para evaluar experimentalmente las capacidades funcionales de la mano robótica durante tareas de inventario y manipulación de objetos.
 
 ---
 
