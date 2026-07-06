@@ -87,3 +87,59 @@ Network interface (eth0/enp...):
 
 Debe ingresarse la interfaz Ethernet correspondiente a la conexión física entre el computador y el robot.
 
+## Estructura del repositorio
+
+El software desarrollado durante este proyecto se encuentra organizado en dos módulos principales, siguiendo las diferentes etapas del trabajo de investigación.
+
+
+### `src/`
+
+Esta carpeta contiene el desarrollo base del proyecto. Aquí se implementaron las primeras rutinas necesarias para comprender el funcionamiento de la mano robótica Dex3-1 y establecer la comunicación con el sistema.
+
+Incluye funcionalidades como:
+
+- Movimientos básicos de los dedos.
+- Pruebas individuales de articulaciones.
+- Lectura de sensores táctiles.
+- Consulta de atributos disponibles del SDK.
+- Reinicio de motores.
+- Rutinas iniciales de validación del movimiento.
+
+Estas rutinas sirvieron como base para el desarrollo de los experimentos posteriores.
+
+---
+
+### `pick_and_place_movements/`
+
+### `pick_and_place_movements/`
+
+Esta carpeta contiene las herramientas desarrolladas para implementar tareas de manipulación mediante captura y reproducción de movimientos.
+
+La metodología consiste en registrar una secuencia de movimiento realizada con el robot (brazos, cintura y manos), almacenarla en archivos de trayectoria y posteriormente reproducirla para ejecutar tareas repetitivas de manipulación.
+
+Las trayectorias capturadas no incluyen movimientos de locomoción; únicamente consideran los grados de libertad correspondientes a las extremidades superiores del robot.
+
+A partir de estas capturas se desarrollaron las rutinas experimentales utilizadas para la evaluación de agarres y tareas de *pick and place*.
+
+1. Encender robot
+        │
+        ▼
+2. Ejecutar Captura_posiciones.py
+        │
+        ▼
+3. Mover el robot manualmente
+        │
+        ▼
+4. Guardar trayectoria (.txt)
+        │
+        ▼
+5. Ejecutar rc_bimanual_player.py
+        │
+        ▼
+6. Reproducir movimiento
+        │
+        ▼
+7. Construir rutina de agarre
+        │
+        ▼
+8. Ejecutar validación
