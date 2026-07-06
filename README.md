@@ -143,6 +143,8 @@ A partir de estas capturas se desarrollaron las rutinas experimentales utilizada
         ▼
 8. Ejecutar validación
 
+---
+
 ### `data_tests/`
 
 Esta carpeta contiene los conjuntos de datos (*datasets*) generados durante el desarrollo y la validación experimental del proyecto.
