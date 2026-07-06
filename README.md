@@ -160,3 +160,20 @@ Estos datos fueron utilizados para:
 - Generar las figuras, tablas y resultados presentados en el informe de investigación.
 
 La carpeta constituye el respaldo de los datos experimentales obtenidos durante el proyecto y permite reproducir los análisis realizados a partir de las mediciones registradas.
+
+---
+
+### `Registro_fotografico/`
+
+Esta carpeta contiene el registro fotográfico del desarrollo experimental del proyecto.
+
+Incluye imágenes obtenidas durante las diferentes etapas de implementación y validación de la mano robótica, tales como:
+
+- Montaje y configuración de la plataforma experimental.
+- Pruebas de funcionamiento de la mano robótica.
+- Configuraciones de agarre implementadas.
+- Manipulación de los objetos utilizados durante los experimentos.
+- Captura de movimientos y ejecución de rutinas de *pick-and-place*.
+- Evidencias del proceso de caracterización y validación experimental.
+
+Estas fotografías complementan la documentación del proyecto y permiten visualizar las condiciones bajo las cuales se desarrollaron los experimentos y las pruebas reportadas en el trabajo de grado.
