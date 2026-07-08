@@ -163,17 +163,17 @@ La carpeta constituye el respaldo de los datos experimentales obtenidos durante 
 
 ---
 
-### `Registro_fotografico/`
+### `Scripts_analisis/`
 
-Esta carpeta contiene el registro fotográfico del desarrollo experimental del proyecto.
+Esta carpeta contiene scripts desarrollados para el procesamiento y análisis de los datos obtenidos durante las pruebas experimentales.
 
-Incluye imágenes obtenidas durante las diferentes etapas de implementación y validación de la mano robótica, tales como:
+Las herramientas incluidas permiten analizar el comportamiento cinemático de la mano robótica y visualizar diferentes características de los movimientos ejecutados durante la validación del sistema.
 
-- Montaje y configuración de la plataforma experimental.
-- Pruebas de funcionamiento de la mano robótica.
-- Configuraciones de agarre implementadas.
-- Manipulación de los objetos utilizados durante los experimentos.
-- Captura de movimientos y ejecución de rutinas de *pick-and-place*.
-- Evidencias del proceso de caracterización y validación experimental.
+Entre las principales funcionalidades se encuentran:
 
-Estas fotografías complementan la documentación del proyecto y permiten visualizar las condiciones bajo las cuales se desarrollaron los experimentos y las pruebas reportadas en el trabajo de grado.
+- Análisis de las trayectorias articulares de los dedos.
+- Estudio del movimiento del pulgar.
+- Visualización y análisis del espacio de trabajo (*workspace*) del pulgar.
+- Visualización y análisis del espacio de trabajo de los dedos.
+
+Estos scripts fueron utilizados como apoyo para la interpretación de los resultados experimentales y la caracterización del comportamiento de la mano robótica.
